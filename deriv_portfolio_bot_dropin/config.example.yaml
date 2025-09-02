@@ -1,0 +1,74 @@
+mode: paper
+
+account:
+  app_id: ${DERIV_APP_ID}
+  token: ${DERIV_API_TOKEN}
+
+universe:
+  refresh_minutes: 60
+  include_submarkets:
+    - volatility_indices
+    - volatility_1s_indices
+    - range_break_indices
+    - step_index
+    - daily_reset_indices
+    - jump_indices
+  allow: []
+  deny:  []
+
+data:
+  bars: [1s, 5s, 1m]
+  history:
+    preload_minutes: 240
+
+alpha:
+  models:
+    - name: ema_trend
+      params: {ema_fast: 20, ema_slow: 50, rsi_len: 14, rsi_gate_low: 30, rsi_gate_high: 70}
+    - name: mean_revert
+      params: {boll_len: 20, z_entry: 2.0, z_exit: 0.3}
+    - name: breakout
+      params: {donchian: 55, atr_len: 14}
+    - name: vol_squeeze
+      params: {atr_len: 14, squeeze_pct: 0.6}
+    - name: impulse_fade
+      params: {impulse_sigma: 3.0, cooloff_s: 30}
+
+alloc:
+  bandit: thompson
+  decay_half_life_trades: 50
+  max_arms: 24
+  min_trades_to_activate: 10
+  warmup_bars: 300
+
+risk:
+  vol_target_pct_per_trade: 0.25
+  kelly_fraction_cap: 0.25
+  per_symbol_daily_loss_cap_pct: 1.0
+  daily_loss_cap_pct: 3.0
+  daily_gain_lock_pct: 5.0
+  max_concurrent_positions: 3
+  cooldown_after_loss_s: 120
+  hard_kill_on_drawdown_pct: 10.0
+
+execution:
+  contract_type: multipliers
+  default_stake: 1.00
+  tp_pct: 0.8
+  sl_pct: 0.5
+  slippage_sim_ticks: 1
+  paper_latency_ms: 150
+  confirm_live_flag_required: true
+
+orstac:
+  seed_folder: "./ORSTAC_XML"
+  seed_output: "./seed_params.yaml"
+
+logging:
+  level: INFO
+  path: logs/run_{date}.log
+
+backtest:
+  start: "2025-06-01"
+  end:   "2025-08-31"
+  walk_forward_days: 7
